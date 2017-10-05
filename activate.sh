@@ -142,14 +142,28 @@ autoenv_source() {
 	\unset AUTOENV_CUR_FILE AUTOENV_CUR_DIR
 }
 
-autoenv_cd() {
-	\command -v chdir >/dev/null 2>&1 && \chdir "${@}" || builtin cd "${@}"
+do_autoenv() {
 	if [ "${?}" -eq 0 ]; then
 		autoenv_init
 		\return 0
 	else
 		\return "${?}"
 	fi
+}
+
+autoenv_cd() {
+	\command -v chdir >/dev/null 2>&1 && \chdir "${@}" || builtin cd "${@}"
+    do_autoenv
+}
+
+autoenv_pushd() {
+	builtin pushd "${@}"
+    do_autoenv
+}
+
+autoenv_popd() {
+	builtin popd "${@}"
+    do_autoenv
 }
 
 # Override the cd alias
@@ -162,6 +176,14 @@ fi
 enable_autoenv() {
 	cd() {
 		autoenv_cd "${@}"
+	}
+
+	pushd() {
+		autoenv_pushd "${@}"
+	}
+
+	popd() {
+		autoenv_popd "${@}"
 	}
 
 	cd "${PWD}"
